@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"strconv"
 )
 
 //文章控制器
@@ -53,14 +54,16 @@ func ArticlePost(c *gin.Context) {
 	Untils.ResponseOkState(c, FormData)
 }
 
+//SendReleaseTopic 添加话题
 func SendReleaseTopic(c *gin.Context) {
 	FormData := Models.ReleaseTopic{}
+	var user Models.WeiChat
 	errs := c.Bind(&FormData)
 	if errs != nil {
 		Untils.ResponseBadState(c, errs)
 	}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		e1 := tx.Where("app_code=?", FormData.AppCode).Find(&Models.WeiChat{}).Error
+		e1 := tx.Where("app_code=?", FormData.AppCode).Find(&user).Error
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}
@@ -77,8 +80,24 @@ func SendReleaseTopic(c *gin.Context) {
 	Untils.ResponseOkState(c, FormData)
 }
 
-//TopicList 获取当前话题信息
-func TopicList(c *gin.Context) {
+func GetReleaseTopic(c *gin.Context) {
+	FormData := Models.ReleaseTopic{}
+	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
+		e1 := tx.Model(&Models.ReleaseTopic{}).Find(&FormData).Error
+		if e1 != nil {
+			return errors.New("非法闯入-当前账号不存在")
+		}
+		return nil
+	})
+	if err != nil {
+		Untils.ResponseBadState(c, err)
+		return
+	}
+	Untils.ResponseOkState(c, FormData)
+}
+
+//AddTopicList 添加当前发布信息
+func AddTopicList(c *gin.Context) {
 	model := Models.TopicDiscuss{}
 	info := Models.WeiChat{}
 	errs := c.Bind(&model)
@@ -86,11 +105,13 @@ func TopicList(c *gin.Context) {
 		Untils.ResponseBadState(c, errs)
 	}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		e1 := tx.Debug().Model(&Models.WeiChat{}).Where("app_code=?", model.AppCode).Find(&info).Error
+		e1 := tx.Debug().Model(&Models.WeiChat{}).Where("app_code=?", model.AppCode).First(&info).Error
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}
-		e2 := Untils.Db.Model(&Models.TopicDiscuss{}).Create(&model).Error
+		model.WeiChat = info
+		model.PosterId = info.ID
+		e2 := tx.Model(&Models.TopicDiscuss{}).Create(&model).Error
 		if e2 != nil {
 			return errors.New("写入失败")
 		}
@@ -100,77 +121,59 @@ func TopicList(c *gin.Context) {
 		Untils.ResponseBadState(c, err)
 		return
 	}
-	model.Poster.Nickname = info.NickName
-	model.Poster.Id = info.ID
-	model.Poster.Avatar = info.Avator
-	model.Poster.CreatedAt = info.CreatedAt
-	model.PosterId = int(info.ID)
 	Untils.ResponseOkState(c, model)
 }
 
+//GetTopicList 获取当前所有发布信息
 func GetTopicList(c *gin.Context) {
-	//var model []Models.TopicDiscuss
-	//info := []Models.WeiChat{}
-	//page_size, _ := strconv.Atoi(c.Query("page_size"))
-	//page_number, _ := strconv.Atoi(c.Query("page_number"))
-	//getType := c.Query("type")
-	//order_by := c.Query("order_by")
-	//sort_by := c.Query("sort_by")
-	//app_code := c.Query("app_code")
+	var model []Models.TopicDiscuss
+	page_size, _ := strconv.Atoi(c.Query("page_size"))
+	page_number, _ := strconv.Atoi(c.Query("page_number"))
+	getType := c.Query("type")
+	order_by := c.Query("order_by")
+	sort_by := c.Query("sort_by")
+	app_code := c.Query("app_code")
 
-	var users []Models.WeiChat
-	err := Untils.Db.Model(&Models.WeiChat{}).Preload("TopicDiscuss").Find(&users).Error
-	fmt.Println(err)
-	fmt.Println(users)
-	//err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-	//	var e2 error
-	//	//oreder := fmt.Sprintf("%s %s", order_by, sort_by)
-	//	//if app_code != "" {
-	//	//	e2 = tx.Model(&Models.TopicDiscuss{}).Where("type=? and app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
-	//	//} else {
-	//	//e2 = tx.Model(&Models.TopicDiscuss{}).Where("type=?", getType).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
-	//	e2 = tx.Model(&Models.WeiChat{}).Preload("TopicDiscusss").Find(&info).Error
-	//	//}
-	//
-	//	//e2 = tx.Model(&Models.TopicDiscuss{}).Association("TopicDiscuss").Find(&info.TopicDiscusss).Error
-	//
-	//	if e2 != nil {
-	//		return errors.New("写入失败")
-	//	}
-	//	return info, err
-	//	//for _, discuss := range model {
-	//	//	e2 = tx.Debug().Model(&Models.WeiChat{}).Where("app_code=?", discuss.AppCode).First(&info).Error
-	//	//	discuss.Poster.Nickname = info.NickName
-	//	//	discuss.Poster.Id = info.ID
-	//	//	discuss.Poster.Avatar = info.Avator
-	//	//	discuss.Poster.CreatedAt = info.CreatedAt
-	//	//	discuss.PosterId = int(info.ID)
-	//	//}
-	//	return nil
-	//})
-	//if err != nil {
-	//	Untils.ResponseBadState(c, err)
-	//	return
-	//}
-	Untils.ResponseOkState(c, users)
+	oreder := fmt.Sprintf("%s %s", order_by, sort_by)
+	var err error
+	if app_code != "" {
+		err = Untils.Db.Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+	} else {
+		err = Untils.Db.Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=?", getType).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+	}
+	if err != nil {
+		Untils.ResponseBadState(c, err)
+		return
+	}
+	var page = make(map[string]any)
+	var data = make(map[string]any)
+	total := 0
+	if len(model) < 10 && len(model) != 0 {
+		total = 1
+	} else {
+		total = len(model) / 10
+	}
+	page["number"] = "1"
+	page["size"] = "10"
+	page["total-pages"] = total
+	page["total_items"] = len(model)
+	data["page"] = page
+	data["page_data"] = model
+	Untils.ResponseOkState(c, data)
 }
 
-func TopicController(c *gin.Context) {
+func TalkListController(c *gin.Context) {
 	if c.Request.Method == "POST" {
-		TopicList(c)
+		AddTopicList(c)
 	} else if c.Request.Method == "GET" {
 		GetTopicList(c)
 	}
 }
 
-func UserTest(c *gin.Context) {
-	//var U1 []Models.UTest
-	//var U = Models.UTest{
-	//	Name:  "test",
-	//	CTest: []Models.CTest{{Code: "222", Name: "c2"}, {Code: "333", Name: "c3"}},
-	//}
-
-	//Untils.Db.Create(&U)
-	//Untils.Db.Model(&Models.UTest{}).Preload("CTest").Find(&U1, 2)
-	//Untils.ResponseOkState(c, &U1)
+func TopicController(c *gin.Context) {
+	if c.Request.Method == "POST" {
+		SendReleaseTopic(c)
+	} else if c.Request.Method == "GET" {
+		GetReleaseTopic(c)
+	}
 }

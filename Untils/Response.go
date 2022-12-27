@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func ResponseOkState(c *gin.Context, Data interface{}) {
+func ResponseOkState[T any](c *gin.Context, Data T) {
 	c.JSON(http.StatusOK, gin.H{
 		"Message": "请求成功",
 		"data":    Data,

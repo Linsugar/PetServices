@@ -23,23 +23,23 @@ type T2 struct {
 		UpdateTime int `json:"update_time"`
 	} `json:"item"`
 }
-type UTest struct {
+type Test1 struct {
 	gorm.Model
 	Name    string
-	CTestID uint
-	CTest   CTest
+	Test2ID uint
+	Test2   Test2
 }
 
-func (UTest) TableName() string {
-	return "UTest"
+func (Test1) TableName() string {
+	return "Test1"
 }
 
-type CTest struct {
+type Test2 struct {
 	gorm.Model
 	Code string
 	Name string
 }
 
-func (CTest) TableName() string {
-	return "CTest"
+func (Test2) TableName() string {
+	return "Test2"
 }

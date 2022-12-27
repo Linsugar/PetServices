@@ -30,12 +30,11 @@ func Router() {
 		V1Route.GET("/weixin", Views.WeixinGet)
 		V1Route.POST("/register", Views.Register)
 		V1Route.POST("/check_login", Views.Check_login)
-		V1Route.POST("/topic", Views.SendReleaseTopic)
+		V1Route.Any("/topic", Views.TopicController)
 		V1Route.GET("/Info", Views.Get_UserInfo)
 		V1Route.POST("/updateInfo", Views.Update_UserInfo)
 		//V1Route.POST("/list", Views.TopicList)
-		V1Route.Any("/list", Views.TopicController)
-		V1Route.Any("/UT", Views.UserTest)
+		V1Route.Any("/list", Views.TalkListController)
 	}
 	V2Route := R.Group("/UserConfig")
 	{

@@ -2,7 +2,6 @@ package Models
 
 import (
 	"github.com/jinzhu/gorm"
-	"time"
 )
 
 type Article struct {
@@ -21,7 +20,7 @@ func (Article) TableName() string {
 
 type TopicDiscuss struct {
 	gorm.Model
-	PosterId      int    `json:"poster_id"`
+	PosterId      uint   `json:"poster_id"`
 	CollegeId     string `json:"college_id"`
 	Content       string `json:"content"`
 	Attachments   string `json:"attachments"`
@@ -33,21 +32,15 @@ type TopicDiscuss struct {
 	PraiseNumber  int    `json:"praise_number"`
 	Mobile        string `json:"mobile"`
 	NewColumn     string `json:"new_column"`
-	Poster        struct {
-		Id        uint      `json:"id"`
-		Nickname  string    `json:"nickname"`
-		Avatar    string    `json:"avatar"`
-		Gender    int       `json:"gender"`
-		CreatedAt time.Time `json:"created_at"`
-		Type      int       `json:"type"`
-	} `json:"poster"`
-	Praises   int    `json:"praises"`
-	Comments  int    `json:"comments"`
-	Follow    bool   `json:"follow"`
-	CanDelete bool   `json:"can_delete"`
-	CanChat   bool   `json:"can_chat"`
-	Supertube int    `json:"supertube"`
-	AppCode   string `json:"app_code" binding:"required"`
+	Praises       int    `json:"praises"`
+	Comments      int    `json:"comments"`
+	Follow        bool   `json:"follow"`
+	CanDelete     bool   `json:"can_delete"`
+	CanChat       bool   `json:"can_chat"`
+	Supertube     int    `json:"supertube"`
+	AppCode       string `json:"app_code" binding:"required"`
+	WeiChatID     uint
+	WeiChat       WeiChat `binding:"-" json:"poster"`
 }
 
 func (TopicDiscuss) TableName() string {
