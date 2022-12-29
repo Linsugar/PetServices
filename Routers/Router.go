@@ -31,10 +31,9 @@ func Router() {
 		V1Route.POST("/register", Views.Register)
 		V1Route.POST("/check_login", Views.Check_login)
 		V1Route.Any("/topic", Views.TopicController)
-		V1Route.GET("/Info", Views.Get_UserInfo)
-		V1Route.POST("/updateInfo", Views.Update_UserInfo)
-		//V1Route.POST("/list", Views.TopicList)
+		V1Route.GET("/Info", Views.Person_Info_Controller)
 		V1Route.Any("/list", Views.TalkListController)
+		V1Route.GET("/newtype", Views.GetNewTopic)
 	}
 	V2Route := R.Group("/UserConfig")
 	{

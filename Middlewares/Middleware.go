@@ -31,8 +31,6 @@ func FirstCheck(MapValue map[string]interface{}) gin.HandlerFunc {
 func JWThMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// 客户端携带Token有三种方式 1.放在请求头 2.放在请求体 3.放在URI
-		// 这里假设Token放在Header的token中
-		fmt.Println("进入了")
 		url := c.Request.URL
 		method := c.Request.Method
 		if url.Path == "/UserCenter/register" && method == "POST" {
@@ -43,8 +41,8 @@ func JWThMiddleware() func(c *gin.Context) {
 		if token == "" {
 			// 处理 没有token的时候
 			c.JSON(403, gin.H{
-				"err":    "丢失token",
-				"status": http.StatusInternalServerError,
+				"error_message": "丢失token",
+				"error_code":    http.StatusInternalServerError,
 			})
 			c.Abort() // 不会继续停止
 			return
@@ -53,7 +51,10 @@ func JWThMiddleware() func(c *gin.Context) {
 		mc, err := ParseToken(token)
 		if err != nil {
 			// 处理 解析失败
-			fmt.Printf("解析失败：%v\n", err.Error())
+			c.JSON(403, gin.H{
+				"error_message": "token已过期",
+				"error_code":    http.StatusInternalServerError,
+			})
 			c.Abort()
 			return
 		}

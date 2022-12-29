@@ -129,25 +129,45 @@ func GetTopicList(c *gin.Context) {
 	var model []Models.TopicDiscuss
 	page_size, _ := strconv.Atoi(c.Query("page_size"))
 	page_number, _ := strconv.Atoi(c.Query("page_number"))
-	getType := c.Query("type")
-	order_by := c.Query("order_by")
-	sort_by := c.Query("sort_by")
+	getType := c.DefaultQuery("type", "1")
+	order_by := c.DefaultQuery("order_by", "created_at")
+	sort_by := c.DefaultQuery("sort_by", "desc")
 	app_code := c.Query("app_code")
+	//just := c.Query("just")
+	user_id := c.Query("user_id")
 
 	oreder := fmt.Sprintf("%s %s", order_by, sort_by)
-	var err error
-	if app_code != "" {
-		err = Untils.Db.Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
-	} else {
-		err = Untils.Db.Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=?", getType).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
-	}
-	if err != nil {
-		Untils.ResponseBadState(c, err)
-		return
-	}
 	var page = make(map[string]any)
 	var data = make(map[string]any)
 	total := 0
+
+	var err error
+
+	if user_id != "" {
+		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat", func(tx *gorm.DB) *gorm.DB {
+			return tx.Model(Models.WeiChat{}).Where("id=?", user_id)
+		}).Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+		if err != nil {
+			Untils.ResponseBadState(c, err)
+		} else {
+			goto label
+		}
+	}
+	if app_code != "" {
+		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+		if err != nil {
+			Untils.ResponseBadState(c, err)
+		} else {
+			goto label
+		}
+	}
+	err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=?", getType).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+	if err != nil {
+		Untils.ResponseBadState(c, err)
+	} else {
+		goto label
+	}
+label:
 	if len(model) < 10 && len(model) != 0 {
 		total = 1
 	} else {
@@ -160,6 +180,7 @@ func GetTopicList(c *gin.Context) {
 	data["page"] = page
 	data["page_data"] = model
 	Untils.ResponseOkState(c, data)
+
 }
 
 func TalkListController(c *gin.Context) {
@@ -176,4 +197,14 @@ func TopicController(c *gin.Context) {
 	} else if c.Request.Method == "GET" {
 		GetReleaseTopic(c)
 	}
+}
+
+func GetNewTopic(c *gin.Context) {
+	app_cdde := c.Query("app_code")
+	fmt.Println(app_cdde)
+	value := make(map[string]any, 0)
+	value["data"] = 0
+	value["error_code"] = 0
+	value["error_message"] = "success"
+	Untils.ResponseOkState(c, value)
 }

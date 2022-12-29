@@ -187,3 +187,28 @@ type UpdateInfo struct {
 	AppCode   string `json:"app_code"`
 	Avator    string `json:"avator"`
 }
+
+//Get_Personal_Info 获取用户详情
+func Get_Personal_Info(c *gin.Context) {
+	var info Models.WeiChat
+	app_code := c.Query("app_code")
+	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
+		tx.Model(Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
+		return nil
+	})
+	if err != nil {
+		Untils.ResponseBadState(c, err)
+	} else {
+		Untils.ResponseOkState(c, info)
+	}
+}
+
+//用户信息更新控制
+func Person_Info_Controller(c *gin.Context) {
+	if c.Request.Method == "POST" {
+		Update_UserInfo(c)
+	}
+	if c.Request.Method == "GET" {
+		Get_Personal_Info(c)
+	}
+}

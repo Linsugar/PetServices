@@ -92,12 +92,25 @@ type WeiChat struct {
 	AppId         string `json:"app_id" binding:"required"`
 	AppCode       string `json:"app_code" binding:"required"`
 	Token         string `json:"token"`
-	Avator        string `json:"avator" gorm:"default:'http://cdn.tlapp.club/pet.png'"`
+	Avatar        string `json:"avatar" gorm:"default:'http://cdn.tlapp.club/pet.png'"`
 	NickName      string `json:"nickName" gorm:"default:'访客'"`
 	VisitIP       string `json:"visitIP"`
-	Signature     string `json:"signature"`
+	Signature     string `json:"personal_signature"`
 	Gender        bool   `json:"gender"`
 	Type          string `json:"type" gorm:"default:'0'"`
+	UnionId       string `json:"Union_id"`
+	Status        string `json:"status"`
+	ActiveValue   int    `json:"active_value"`
+	City          string `json:"city"`
+	ClockNum      int    `json:"clock_num"`
+	Country       string `json:"country"`
+	FansNum       int    `json:"fans_num"`
+	FollowNum     int    `json:"follow_num"`
+	Language      string `json:"language"`
+	Mobile        string `json:"mobile"`
+	OpenId        string `json:"open_id"`
+	PostNum       int    `json:"post_num"`
+	Province      string `json:"province"`
 }
 
 func (WeiChat) TableName() string {

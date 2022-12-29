@@ -1,7 +1,5 @@
 package Models
 
-import "github.com/jinzhu/gorm"
-
 type T2 struct {
 	TotalCount int `json:"total_count"`
 	ItemCount  int `json:"item_count"`
@@ -22,24 +20,4 @@ type T2 struct {
 		} `json:"content"`
 		UpdateTime int `json:"update_time"`
 	} `json:"item"`
-}
-type Test1 struct {
-	gorm.Model
-	Name    string
-	Test2ID uint
-	Test2   Test2
-}
-
-func (Test1) TableName() string {
-	return "Test1"
-}
-
-type Test2 struct {
-	gorm.Model
-	Code string
-	Name string
-}
-
-func (Test2) TableName() string {
-	return "Test2"
 }
