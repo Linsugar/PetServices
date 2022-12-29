@@ -23,7 +23,7 @@ type TopicDiscuss struct {
 	PosterId      uint   `json:"poster_id"`
 	CollegeId     string `json:"college_id"`
 	Content       string `json:"content"`
-	Attachments   string `json:"attachments"`
+	Attachments   any    `json:"attachments" gorm:"type:text"`
 	Topic         string `json:"topic"`
 	Type          int    `json:"type"`
 	Status        int    `json:"status"`
@@ -32,8 +32,8 @@ type TopicDiscuss struct {
 	PraiseNumber  int    `json:"praise_number"`
 	Mobile        string `json:"mobile"`
 	NewColumn     string `json:"new_column"`
-	Praises       int    `json:"praises"`
-	Comments      int    `json:"comments"`
+	Praises       any    `json:"praises" gorm:"type:text"`
+	Comments      any    `json:"comments" gorm:"type:text"`
 	Follow        bool   `json:"follow"`
 	CanDelete     bool   `json:"can_delete"`
 	CanChat       bool   `json:"can_chat"`

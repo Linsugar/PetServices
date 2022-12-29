@@ -3,6 +3,7 @@ package Views
 import (
 	"PetService/Models"
 	"PetService/Untils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -54,7 +55,7 @@ func ArticlePost(c *gin.Context) {
 	Untils.ResponseOkState(c, FormData)
 }
 
-//SendReleaseTopic 添加话题
+// SendReleaseTopic 添加话题
 func SendReleaseTopic(c *gin.Context) {
 	FormData := Models.ReleaseTopic{}
 	var user Models.WeiChat
@@ -96,13 +97,16 @@ func GetReleaseTopic(c *gin.Context) {
 	Untils.ResponseOkState(c, FormData)
 }
 
-//AddTopicList 添加当前发布信息
+// AddTopicList 添加当前发布信息
 func AddTopicList(c *gin.Context) {
 	model := Models.TopicDiscuss{}
 	info := Models.WeiChat{}
+	//fmt.Println(value)
 	errs := c.Bind(&model)
 	if errs != nil {
+		fmt.Println("绑定失败")
 		Untils.ResponseBadState(c, errs)
+		return
 	}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		e1 := tx.Debug().Model(&Models.WeiChat{}).Where("app_code=?", model.AppCode).First(&info).Error
@@ -111,6 +115,12 @@ func AddTopicList(c *gin.Context) {
 		}
 		model.WeiChat = info
 		model.PosterId = info.ID
+		Attachments, _ := json.Marshal(model.Attachments)
+		model.Attachments = string(Attachments)
+		Comments, _ := json.Marshal(model.Comments)
+		model.Comments = string(Comments)
+		Praises, _ := json.Marshal(model.Praises)
+		model.Praises = string(Praises)
 		e2 := tx.Model(&Models.TopicDiscuss{}).Create(&model).Error
 		if e2 != nil {
 			return errors.New("写入失败")
@@ -124,7 +134,7 @@ func AddTopicList(c *gin.Context) {
 	Untils.ResponseOkState(c, model)
 }
 
-//GetTopicList 获取当前所有发布信息
+// GetTopicList 获取当前所有发布信息
 func GetTopicList(c *gin.Context) {
 	var model []Models.TopicDiscuss
 	page_size, _ := strconv.Atoi(c.Query("page_size"))
