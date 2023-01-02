@@ -3,6 +3,7 @@ package Routers
 import (
 	"PetService/Middlewares"
 	"PetService/Views"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"sync"
 )
@@ -10,7 +11,7 @@ import (
 var once sync.Once
 var Gone *gin.Engine
 
-//实现单例只创建一次
+// 实现单例只创建一次
 func engine() *gin.Engine {
 	once.Do(func() {
 		Gone = gin.Default()
@@ -20,6 +21,7 @@ func engine() *gin.Engine {
 
 func Router() {
 	R := engine()
+	fmt.Println("111111")
 	Gone.Use(Middlewares.JWThMiddleware())
 	V1Route := R.Group("/UserCenter")
 	{
@@ -34,6 +36,9 @@ func Router() {
 		V1Route.GET("/Info", Views.Person_Info_Controller)
 		V1Route.Any("/list", Views.TalkListController)
 		V1Route.GET("/newtype", Views.GetNewTopic)
+		V1Route.Any("/sale", Views.FriendController)
+		V1Route.Any("/comment", Views.CommentController)
+		V1Route.Any("/detail", Views.FriendDetail)
 	}
 	V2Route := R.Group("/UserConfig")
 	{

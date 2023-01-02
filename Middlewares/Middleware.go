@@ -32,6 +32,7 @@ func JWThMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// 客户端携带Token有三种方式 1.放在请求头 2.放在请求体 3.放在URI
 		url := c.Request.URL
+		fmt.Println(url.Path)
 		method := c.Request.Method
 		if url.Path == "/UserCenter/register" && method == "POST" {
 			c.Next()

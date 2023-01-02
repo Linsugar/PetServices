@@ -3,7 +3,6 @@ package Views
 import (
 	"PetService/Models"
 	"PetService/Untils"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -101,7 +100,6 @@ func GetReleaseTopic(c *gin.Context) {
 func AddTopicList(c *gin.Context) {
 	model := Models.TopicDiscuss{}
 	info := Models.WeiChat{}
-	//fmt.Println(value)
 	errs := c.Bind(&model)
 	if errs != nil {
 		fmt.Println("绑定失败")
@@ -115,12 +113,6 @@ func AddTopicList(c *gin.Context) {
 		}
 		model.WeiChat = info
 		model.PosterId = info.ID
-		Attachments, _ := json.Marshal(model.Attachments)
-		model.Attachments = string(Attachments)
-		Comments, _ := json.Marshal(model.Comments)
-		model.Comments = string(Comments)
-		Praises, _ := json.Marshal(model.Praises)
-		model.Praises = string(Praises)
 		e2 := tx.Model(&Models.TopicDiscuss{}).Create(&model).Error
 		if e2 != nil {
 			return errors.New("写入失败")

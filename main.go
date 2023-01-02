@@ -9,6 +9,7 @@ import (
 //var MapIp = map[string]interface{}{}
 
 func main() {
+
 	Routers.Router()
 	//Routers.Gone.Use(Middlewares.JWThMiddleware())
 	//Gone.Use(Middlewares.FirstCheck(MapIp), Middlewares.JWThMiddleware())
