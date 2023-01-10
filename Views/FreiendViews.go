@@ -109,6 +109,7 @@ label:
 func FriendDetail(c *gin.Context) {
 	detail := Models.SaleFriend{}
 	id := c.Query("id")
+	fmt.Println("再次提交")
 	Untils.Db.Debug().Model(&Models.SaleFriend{}).Where("id=?", id).Preload("Comments.WeiChat").Preload("Comments").First(&detail)
 	Untils.ResponseOkState(c, detail)
 }
