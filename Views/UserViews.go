@@ -114,7 +114,7 @@ func Register(c *gin.Context) {
 
 }
 
-//Check_login 专门检测是否失效
+// Check_login 专门检测是否失效
 func Check_login(c *gin.Context) {
 	appid, _ := c.Get("userID")
 	Err := Untils.Db.Transaction(func(tx *gorm.DB) error {
@@ -152,7 +152,7 @@ func Get_UserInfo(c *gin.Context) {
 
 }
 
-//Update_UserInfo 更新用户信息
+// Update_UserInfo 更新用户信息
 func Update_UserInfo(c *gin.Context) {
 	user := Models.WeiChat{}
 	value := UpdateInfo{}
@@ -165,7 +165,7 @@ func Update_UserInfo(c *gin.Context) {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
 		er := tx.Model(&Models.WeiChat{}).Where("app_code=?", value.AppCode).Find(&user).RowsAffected
 		if er != 0 {
-			v := tx.Model(&Models.WeiChat{}).Updates(map[string]interface{}{"avator": value.Avator, "signature": value.Signature, "nick_name": value.Nickname}).Where("app_code=?", value.AppCode).Error
+			v := tx.Model(&Models.WeiChat{}).Updates(map[string]interface{}{"avatar": value.Avator, "signature": value.Signature, "nick_name": value.Nickname}).Where("app_code=?", value.AppCode).Error
 			if v != nil {
 				return v
 			}
@@ -188,7 +188,7 @@ type UpdateInfo struct {
 	Avator    string `json:"avator"`
 }
 
-//Get_Personal_Info 获取用户详情
+// Get_Personal_Info 获取用户详情
 func Get_Personal_Info(c *gin.Context) {
 	var info Models.WeiChat
 	app_code := c.Query("app_code")
@@ -203,7 +203,7 @@ func Get_Personal_Info(c *gin.Context) {
 	}
 }
 
-//用户信息更新控制
+// 用户信息更新控制
 func Person_Info_Controller(c *gin.Context) {
 	if c.Request.Method == "POST" {
 		Update_UserInfo(c)

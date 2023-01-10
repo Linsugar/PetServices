@@ -15,6 +15,9 @@ func SetQINiuToken(c *gin.Context) {
 	//if err != nil {
 	//	Untils.ResponseBadState(c, err)
 	//}
-	token := Untils.QiNiuToken()
-	Untils.ResponseOkState(c, token)
+	if c.Request.Method == "POST" {
+		token := Untils.QiNiuToken()
+		Untils.ResponseOkState(c, token)
+	}
+
 }

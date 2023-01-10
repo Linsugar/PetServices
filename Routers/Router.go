@@ -3,7 +3,6 @@ package Routers
 import (
 	"PetService/Middlewares"
 	"PetService/Views"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"sync"
 )
@@ -21,7 +20,6 @@ func engine() *gin.Engine {
 
 func Router() {
 	R := engine()
-	fmt.Println("111111")
 	Gone.Use(Middlewares.JWThMiddleware())
 	V1Route := R.Group("/UserCenter")
 	{
@@ -33,12 +31,13 @@ func Router() {
 		V1Route.POST("/register", Views.Register)
 		V1Route.POST("/check_login", Views.Check_login)
 		V1Route.Any("/topic", Views.TopicController)
-		V1Route.GET("/Info", Views.Person_Info_Controller)
+		V1Route.Any("/Info", Views.Person_Info_Controller)
 		V1Route.Any("/list", Views.TalkListController)
-		V1Route.GET("/newtype", Views.GetNewTopic)
+		V1Route.GET("/new_messages", Views.GetNewTopic)
 		V1Route.Any("/sale", Views.FriendController)
 		V1Route.Any("/comment", Views.CommentController)
 		V1Route.Any("/detail", Views.FriendDetail)
+		V1Route.GET("/most_new_sale_friend", Views.GetNewFriends)
 	}
 	V2Route := R.Group("/UserConfig")
 	{

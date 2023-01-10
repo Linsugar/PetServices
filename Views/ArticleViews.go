@@ -67,6 +67,8 @@ func SendReleaseTopic(c *gin.Context) {
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}
+		FormData.WeiChatID = user.ID
+		FormData.UserType = user.Type
 		e2 := Untils.Db.Model(&Models.ReleaseTopic{}).Create(&FormData).Error
 		if e2 != nil {
 			return errors.New("写入失败")
@@ -81,9 +83,13 @@ func SendReleaseTopic(c *gin.Context) {
 }
 
 func GetReleaseTopic(c *gin.Context) {
+	order_by := c.DefaultQuery("order_by", "created_at")
+	sort_by := c.DefaultQuery("sort_by", "desc")
+
+	oreder := fmt.Sprintf("%s %s", order_by, sort_by)
 	FormData := Models.ReleaseTopic{}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		e1 := tx.Model(&Models.ReleaseTopic{}).Find(&FormData).Error
+		e1 := tx.Model(&Models.ReleaseTopic{}).Order(oreder).Find(&FormData).Error
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}

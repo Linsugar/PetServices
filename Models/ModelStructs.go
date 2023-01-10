@@ -25,7 +25,7 @@ type User struct {
 	UserDevice     string         `gorm:"index:devices" json:"userDevice" form:"userDevice" binding:"required"` //用户设备
 }
 
-//自定义表名-默认是结构体名称+s
+// 自定义表名-默认是结构体名称+s
 func (User) TableName() string {
 	return "User"
 }
@@ -83,7 +83,7 @@ func (UserToPic) TableName() string {
 	return "UserToPic"
 }
 
-//WeiChat 微信用户信息
+// WeiChat 微信用户信息
 type WeiChat struct {
 	gorm.Model
 	EncryptedData string `json:"encrypted_data" gorm:"type:varchar(655)"`
@@ -117,15 +117,22 @@ func (WeiChat) TableName() string {
 	return "WeiChat"
 }
 
-//ReleaseTopic 发布话题
+// ReleaseTopic 发布话题
 type ReleaseTopic struct {
 	gorm.Model
-	Content     string `json:"content" binding:"required" gorm:"not null"`
-	Attachments string `json:"attachments"`
-	Private     bool   `json:"private"`
-	Username    string `json:"username" binding:"required"`
-	Mobile      string `json:"mobile"`
-	AppCode     string `json:"app_code" binding:"required" gorm:"not null"`
+	Content       string     `json:"content" binding:"required" gorm:"not null"`
+	Attachments   arraySlice `json:"attachments" gorm:"type:text"`
+	Private       bool       `json:"private"`
+	AppCode       string     `json:"app_code" binding:"required" gorm:"not null"`
+	Type          int        `json:"type" gorm:"type:text"`
+	PraiseNumber  int        `json:"praise_number"`
+	Status        int        `json:"status"`
+	Title         string     `json:"title"`
+	UserType      string     `json:"user_type"`
+	ViewNumber    int        `json:"view_number"`
+	CommentNumber int        `json:"comment_number"`
+	WeiChatID     uint       `json:"user_id"`
+	WeiChat       WeiChat    `binding:"-" json:"-"`
 }
 
 func (ReleaseTopic) TableName() string {
