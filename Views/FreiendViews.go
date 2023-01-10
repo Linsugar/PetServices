@@ -51,6 +51,7 @@ func GetSaleFriend(c *gin.Context) {
 	var model []Models.SaleFriend
 	page_size, _ := strconv.Atoi(c.Query("page_size"))
 	page_number, _ := strconv.Atoi(c.Query("page_number"))
+	page_number = page_number - 1
 	getType := c.DefaultQuery("type", "1")
 	order_by := c.DefaultQuery("order_by", "created_at")
 	sort_by := c.DefaultQuery("sort_by", "desc")
@@ -76,7 +77,6 @@ func GetSaleFriend(c *gin.Context) {
 		}
 	}
 	if app_code != "" {
-
 		err = Untils.Db.Debug().Model(&Models.SaleFriend{}).Preload("Comments").Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
 		if err != nil {
 			Untils.ResponseBadState(c, err)
@@ -109,7 +109,6 @@ label:
 func FriendDetail(c *gin.Context) {
 	detail := Models.SaleFriend{}
 	id := c.Query("id")
-	fmt.Println("再次提交")
 	Untils.Db.Debug().Model(&Models.SaleFriend{}).Where("id=?", id).Preload("Comments.WeiChat").Preload("Comments").First(&detail)
 	Untils.ResponseOkState(c, detail)
 }
@@ -126,6 +125,7 @@ func AddComment(c *gin.Context) {
 	Untils.Db.Debug().Model(&Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
 	comment.WeiChat = info
 	comment.CommenterId = info.ID
+	comment.SaleFriendID = comment.ObjId
 	Untils.Db.Debug().Model(&Models.Comment{}).Create(&comment)
 
 }

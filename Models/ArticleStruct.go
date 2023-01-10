@@ -113,7 +113,7 @@ func (SaleFriend) TableName() string {
 type Comment struct {
 	gorm.Model
 	CommenterId  uint       `json:"commenter_id"`
-	ObjId        int        `json:"obj_id"`
+	ObjId        uint       `json:"obj_id"`
 	CollegeId    int        `json:"college_id"`
 	Content      string     `json:"content"`
 	Attachments  arraySlice `json:"attachments" gorm:"type:text"`

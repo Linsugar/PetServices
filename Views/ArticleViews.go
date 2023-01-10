@@ -154,7 +154,7 @@ func GetTopicList(c *gin.Context) {
 	if user_id != "" {
 		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat", func(tx *gorm.DB) *gorm.DB {
 			return tx.Model(Models.WeiChat{}).Where("id=?", user_id)
-		}).Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+		}).Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number - 1).Order(oreder).Find(&model).Error
 		if err != nil {
 			Untils.ResponseBadState(c, err)
 		} else {
@@ -162,14 +162,14 @@ func GetTopicList(c *gin.Context) {
 		}
 	}
 	if app_code != "" {
-		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number - 1).Order(oreder).Find(&model).Error
 		if err != nil {
 			Untils.ResponseBadState(c, err)
 		} else {
 			goto label
 		}
 	}
-	err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=?", getType).Limit(page_size).Offset(page_number).Order(oreder).Find(&model).Error
+	err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("WeiChat").Where("type=?", getType).Limit(page_size).Offset(page_number - 1).Order(oreder).Find(&model).Error
 	if err != nil {
 		Untils.ResponseBadState(c, err)
 	} else {

@@ -83,7 +83,7 @@ func Register(c *gin.Context) {
 	WeiUser.VisitIP = NowIp
 	Err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
-		er := tx.Model(&Models.WeiChat{}).Where("app_id=? AND app_code=?", WeiUser.AppId, WeiUser.AppCode).Find(&Models.WeiChat{}).RowsAffected
+		er := tx.Model(&Models.WeiChat{}).Where("app_code=?", WeiUser.AppId, WeiUser.AppCode).Find(&Models.WeiChat{}).RowsAffected
 		if er == 0 {
 			if err3 := tx.Model(&Models.WeiChat{}).Create(&WeiUser).Error; err3 != nil {
 				// 返回任何错误都会回滚事务
@@ -163,9 +163,9 @@ func Update_UserInfo(c *gin.Context) {
 	}
 	Err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
-		er := tx.Model(&Models.WeiChat{}).Where("app_code=?", value.AppCode).Find(&user).RowsAffected
+		er := tx.Model(user).Where("app_code=?", value.AppCode).Find(&user).RowsAffected
 		if er != 0 {
-			v := tx.Model(&Models.WeiChat{}).Updates(map[string]interface{}{"avatar": value.Avator, "signature": value.Signature, "nick_name": value.Nickname}).Where("app_code=?", value.AppCode).Error
+			v := tx.Model(user).Updates(map[string]interface{}{"avatar": value.Avator, "signature": value.Signature, "nick_name": value.Nickname}).Where("app_code=?", value.AppCode).Error
 			if v != nil {
 				return v
 			}
@@ -192,10 +192,19 @@ type UpdateInfo struct {
 func Get_Personal_Info(c *gin.Context) {
 	var info Models.WeiChat
 	app_code := c.Query("app_code")
-	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		tx.Model(Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
-		return nil
-	})
+	id := c.Query("user_id")
+	var err error
+	if id != "" {
+		err = Untils.Db.Transaction(func(tx *gorm.DB) error {
+			tx.Model(Models.WeiChat{}).Where("app_code=? and id =?", app_code, id).First(&info)
+			return nil
+		})
+	} else {
+		err = Untils.Db.Transaction(func(tx *gorm.DB) error {
+			tx.Model(Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
+			return nil
+		})
+	}
 	if err != nil {
 		Untils.ResponseBadState(c, err)
 	} else {
