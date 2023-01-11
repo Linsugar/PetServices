@@ -123,10 +123,10 @@ type Comment struct {
 	Status       int        `json:"status"`
 	Author       int        `json:"author"`
 	WeiChatID    uint
-	WeiChat      WeiChat    `json:"commenter" binding:"-"`
-	RefComment   string     `json:"ref_comment"`
-	CanDelete    bool       `json:"can_delete"`
-	SubComments  arraySlice `json:"sub_comments" gorm:"type:text"`
+	WeiChat      WeiChat   `json:"commenter" binding:"-"`
+	RefComment   string    `json:"ref_comment"`
+	CanDelete    bool      `json:"can_delete"`
+	SubComments  []Comment `json:"sub_comments"`
 	SaleFriendID uint
 }
 

@@ -83,7 +83,7 @@ func Register(c *gin.Context) {
 	WeiUser.VisitIP = NowIp
 	Err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
-		er := tx.Model(&Models.WeiChat{}).Where("app_code=?", WeiUser.AppId, WeiUser.AppCode).Find(&Models.WeiChat{}).RowsAffected
+		er := tx.Model(&Models.WeiChat{}).Where("app_code=?", WeiUser.AppCode).Find(&Models.WeiChat{}).RowsAffected
 		if er == 0 {
 			if err3 := tx.Model(&Models.WeiChat{}).Create(&WeiUser).Error; err3 != nil {
 				// 返回任何错误都会回滚事务
