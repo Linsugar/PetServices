@@ -27,7 +27,7 @@ func init() {
 	Db = dataDase
 	var ModelsArrary = []interface{}{&Models.User{}, &Models.PetDetail{}, &Models.Dynamics{},
 		&Models.Article{}, &Models.RegisterCode{}, &Models.WeiChat{}, &Models.ReleaseTopic{},
-		&Models.TopicDiscuss{}, &Models.SaleFriend{}, &Models.Comment{}}
+		&Models.TopicDiscuss{}, &Models.SaleFriend{}, &Models.Comment{}, &Models.RefComment{}}
 
 	Db.AutoMigrate(ModelsArrary...)
 	fmt.Println("链接成功", err)

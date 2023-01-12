@@ -109,30 +109,45 @@ func (SaleFriend) TableName() string {
 
 // Comment 评论
 type Comment struct {
-	CommentPublic
+	gorm.Model
+	CommenterId    uint       `json:"commenter_id"`
+	ObjId          uint       `json:"obj_id"`
+	CollegeId      int        `json:"college_id"`
+	Content        string     `json:"content"`
+	Attachments    arraySlice `json:"attachments" gorm:"type:text"`
+	RefCommentId   uint       `json:"ref_comment_id"`
+	ObjType        int        `json:"obj_type"`
+	Type           string     `json:"type"`
+	Status         int        `json:"status"`
+	Author         int        `json:"author"`
+	CanDelete      bool       `json:"can_delete"`
 	WeiChatID      uint
-	WeiChat        WeiChat       `json:"commenter" binding:"-"`
-	RefComment     CommentPublic `json:"ref_comment"`
-	SubComments    []Comment     `json:"sub_comments"`
-	SaleFriendID   uint
-	TopicDiscussID uint
+	WeiChat        WeiChat      `json:"commenter" binding:"-"`
+	RefComment     []RefComment `json:"ref_comment"`
+	SubComments    []Comment    `json:"sub_comments"`
+	SaleFriendID   uint         `json:"-"`
+	TopicDiscussID uint         `json:"-"`
 }
 
-type CommentPublic struct {
+type RefComment struct {
 	gorm.Model
-	CommenterId  uint       `json:"commenter_id"`
-	ObjId        uint       `json:"obj_id"`
-	CollegeId    int        `json:"college_id"`
-	Content      string     `json:"content"`
-	Attachments  arraySlice `json:"attachments" gorm:"type:text"`
-	RefCommentId string     `json:"ref_comment_id"`
-	ObjType      int        `json:"obj_type"`
-	Type         string     `json:"type"`
-	Status       int        `json:"status"`
-	Author       int        `json:"author"`
-	CanDelete    bool       `json:"can_delete"`
+	Attachments arraySlice `json:"attachments" gorm:"type:text"`
+	CommenterId uint       `json:"commenter_id"`
+	CollegeId   int        `json:"college_id"`
+	Content     string     `json:"content"`
+	ObjType     int        `json:"obj_type"`
+	ObjId       uint       `json:"obj_id"`
+	Type        string     `json:"type"`
+	Status      int        `json:"status"`
+	WeiChatID   uint
+	WeiChat     WeiChat `json:"refCommenter" binding:"-"`
+	CommentID   uint
 }
 
 func (Comment) TableName() string {
 	return "Comment"
+}
+
+func (RefComment) TableName() string {
+	return "RefComment"
 }

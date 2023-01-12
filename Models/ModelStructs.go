@@ -111,6 +111,7 @@ type WeiChat struct {
 	OpenId        string `json:"open_id"`
 	PostNum       int    `json:"post_num"`
 	Province      string `json:"province"`
+	Supertube     int    `json:"supertube"`
 }
 
 func (WeiChat) TableName() string {

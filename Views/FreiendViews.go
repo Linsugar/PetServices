@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/gorm"
 	"strconv"
 	"time"
@@ -118,16 +119,31 @@ func AddComment(c *gin.Context) {
 	comment := Models.Comment{}
 	app_code := "04rNbDIGuBoYcsQn"
 	info := Models.WeiChat{}
-	err := c.Bind(&comment)
+	err := c.ShouldBindBodyWith(&comment, binding.JSON)
 	if err != nil {
 		Untils.Error.Println(err.Error())
 		return
 	}
 	Untils.Db.Debug().Model(&Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
 	comment.WeiChat = info
+	//comment.WeiChatID = info.ID
 	comment.CommenterId = info.ID
 	if comment.Type == "1" {
 		comment.TopicDiscussID = comment.ObjId
+		if comment.RefCommentId > 0 {
+			ref := &Models.RefComment{}
+			er1 := c.ShouldBindBodyWith(&ref, binding.JSON)
+			ref.WeiChat = info
+			ref.CommenterId = info.ID
+			ref.CommentID = comment.RefCommentId
+			if er1 != nil {
+				fmt.Println(er1.Error())
+				return
+			}
+			Untils.Db.Debug().Model(Models.Comment{}).Update(map[string]any{"ref_comment_id": &comment.RefCommentId}).Where("app_code=?", app_code)
+			Untils.Db.Debug().Model(Models.RefComment{}).Create(&ref)
+			return
+		}
 	}
 	if comment.Type == "2" {
 		comment.SaleFriendID = comment.ObjId
