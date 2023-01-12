@@ -37,7 +37,7 @@ type TopicDiscuss struct {
 	Mobile        string     `json:"mobile"`
 	NewColumn     string     `json:"new_column"`
 	Praises       arraySlice `json:"praises" gorm:"type:text"`
-	Comments      arraySlice `json:"comments" gorm:"type:text"`
+	Comments      []Comment  `json:"comments"`
 	Follow        bool       `json:"follow"`
 	CanDelete     bool       `json:"can_delete"`
 	CanChat       bool       `json:"can_chat"`
@@ -52,8 +52,6 @@ func (TopicDiscuss) TableName() string {
 }
 
 type arraySlice []string
-type arrayStruct struct {
-}
 
 // Scan是为了扫描数据库里面的字段然后根据设定进行返回
 func (a *arraySlice) Scan(value any) error {
@@ -111,6 +109,16 @@ func (SaleFriend) TableName() string {
 
 // Comment 评论
 type Comment struct {
+	CommentPublic
+	WeiChatID      uint
+	WeiChat        WeiChat       `json:"commenter" binding:"-"`
+	RefComment     CommentPublic `json:"ref_comment"`
+	SubComments    []Comment     `json:"sub_comments"`
+	SaleFriendID   uint
+	TopicDiscussID uint
+}
+
+type CommentPublic struct {
 	gorm.Model
 	CommenterId  uint       `json:"commenter_id"`
 	ObjId        uint       `json:"obj_id"`
@@ -122,12 +130,7 @@ type Comment struct {
 	Type         string     `json:"type"`
 	Status       int        `json:"status"`
 	Author       int        `json:"author"`
-	WeiChatID    uint
-	WeiChat      WeiChat   `json:"commenter" binding:"-"`
-	RefComment   string    `json:"ref_comment"`
-	CanDelete    bool      `json:"can_delete"`
-	SubComments  []Comment `json:"sub_comments"`
-	SaleFriendID uint
+	CanDelete    bool       `json:"can_delete"`
 }
 
 func (Comment) TableName() string {

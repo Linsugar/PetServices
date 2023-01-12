@@ -120,12 +120,19 @@ func AddComment(c *gin.Context) {
 	info := Models.WeiChat{}
 	err := c.Bind(&comment)
 	if err != nil {
+		Untils.Error.Println(err.Error())
 		return
 	}
 	Untils.Db.Debug().Model(&Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
 	comment.WeiChat = info
 	comment.CommenterId = info.ID
-	comment.SaleFriendID = comment.ObjId
+	if comment.Type == "1" {
+		comment.TopicDiscussID = comment.ObjId
+	}
+	if comment.Type == "2" {
+		comment.SaleFriendID = comment.ObjId
+	}
+
 	Untils.Db.Debug().Model(&Models.Comment{}).Create(&comment)
 
 }
@@ -133,24 +140,24 @@ func AddComment(c *gin.Context) {
 // GetComment 获取评论
 func GetComment(c *gin.Context) {
 	comment := Models.Comment{}
-	var comments []Models.Comment
-	Untils.Db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Model(&Models.Comment{}).Preload("WeiChat").First(&comment).Error
-		Untils.Info.Println("进入")
-		if err != nil {
-			Untils.Error.Println(err.Error())
-			return err
-		}
-		err2 := tx.Model(&Models.Comment{}).Where("obj_id=?", comment.ID).Find(&comments).Error
-		Untils.Info.Println("进入2")
-		if err2 != nil {
-			Untils.Error.Println(err2.Error())
-			return err2
-		}
-		comment.SubComments = comments
-		Untils.Info.Println(comment)
-		return nil
-	})
+	Untils.Db.Model(&Models.Comment{}).Preload("WeiChat").First(&comment)
+	//Untils.Db.Transaction(func(tx *gorm.DB) error {
+	//	err := tx.Model(&Models.Comment{}).Preload("WeiChat").First(&comment).Error
+	//	Untils.Info.Println("进入")
+	//	if err != nil {
+	//		Untils.Error.Println(err.Error())
+	//		return err
+	//	}
+	//	err2 := tx.Model(&Models.Comment{}).Where("obj_id=?", comment.ID).Find(&comments).Error
+	//	Untils.Info.Println("进入2")
+	//	if err2 != nil {
+	//		Untils.Error.Println(err2.Error())
+	//		return err2
+	//	}
+	//	comment.SubComments = comments
+	//	Untils.Info.Println(comment)
+	//	return nil
+	//})
 	Untils.ResponseOkState(c, comment)
 }
 
