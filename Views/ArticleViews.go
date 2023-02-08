@@ -102,8 +102,8 @@ func GetReleaseTopic(c *gin.Context) {
 	Untils.ResponseOkState(c, FormData)
 }
 
-// AddTopicList 添加当前发布信息
-func AddTopicList(c *gin.Context) {
+// AddList 添加当前发布信息
+func AddList(c *gin.Context) {
 	model := Models.TopicDiscuss{}
 	info := Models.WeiChat{}
 	errs := c.Bind(&model)
@@ -113,13 +113,15 @@ func AddTopicList(c *gin.Context) {
 		return
 	}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		e1 := tx.Debug().Model(&Models.WeiChat{}).Where("app_code=?", model.AppCode).First(&info).Error
+		uid, _ := c.Get("userID")
+		e1 := tx.Debug().Model(&Models.WeiChat{}).Where("open_id=?", uid).First(&info).Error
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}
 		model.WeiChat = info
 		model.PosterId = info.ID
-		e2 := tx.Model(&Models.TopicDiscuss{}).Create(&model).Error
+		model.Type = 1
+		e2 := tx.Model(&Models.TopicDiscuss{}).Debug().Create(&model).Error
 		if e2 != nil {
 			return errors.New("写入失败")
 		}
@@ -132,50 +134,49 @@ func AddTopicList(c *gin.Context) {
 	Untils.ResponseOkState(c, model)
 }
 
-// GetTopicList 获取当前所有发布信息
-func GetTopicList(c *gin.Context) {
+// GetList 获取当前所有发布信息
+func GetList(c *gin.Context) {
 	var model []Models.TopicDiscuss
 	page_size, _ := strconv.Atoi(c.Query("page_size"))
 	page_number, _ := strconv.Atoi(c.Query("page_number"))
 	getType := c.DefaultQuery("type", "1")
 	order_by := c.DefaultQuery("order_by", "created_at")
 	sort_by := c.DefaultQuery("sort_by", "desc")
-	app_code := c.Query("app_code")
 	//just := c.Query("just")
 	user_id := c.Query("user_id")
-
-	oreder := fmt.Sprintf("%s %s", order_by, sort_by)
+	filter := c.Query("filter")
+	order := fmt.Sprintf("%s %s", order_by, sort_by)
 	var page = make(map[string]any)
 	var data = make(map[string]any)
 	total := 0
 
-	var err error
-
-	if user_id != "" {
-		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("Comments").Preload("Comments.WeiChat").Preload("Comments.RefComment").Preload("Comments.RefComment.WeiChat").Preload("WeiChat", func(tx *gorm.DB) *gorm.DB {
-			return tx.Model(Models.WeiChat{}).Where("id=?", user_id)
-		}).Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number - 1).Order(oreder).Find(&model).Error
-		if err != nil {
-			Untils.ResponseBadState(c, err)
-		} else {
-			goto label
-		}
+	var count int
+	if page_number <= 0 {
+		page_number = 1
 	}
-	if app_code != "" {
-		err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("Comments").Preload("Comments.WeiChat").Preload("Comments.RefComment").Preload("Comments.RefComment.WeiChat").Preload("WeiChat").Where("type=? AND app_code=?", getType, app_code).Limit(page_size).Offset(page_number - 1).Order(oreder).Find(&model).Error
-		if err != nil {
-			Untils.ResponseBadState(c, err)
-		} else {
-			goto label
-		}
+	if page_size <= 0 {
+		page_size = 10
 	}
-	err = Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("Comments").Preload("Comments.WeiChat").Preload("Comments.RefComment").Preload("Comments.RefComment.WeiChat").Preload("WeiChat").Where("type=?", getType).Limit(page_size).Offset(page_number - 1).Order(oreder).Find(&model).Error
+	var svalue string
+	if user_id != "" && filter == "" {
+		svalue = fmt.Sprintf("type=%s AND poster_id=%s", getType, user_id)
+	} else {
+		svalue = fmt.Sprintf("type=%s", getType)
+	}
+	if filter != "" {
+		svalue = fmt.Sprintf("type=%s AND AND content LIKE %s", getType, filter+"%")
+	}
+	db := Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("Comments").
+		Preload("Comments.WeiChat").
+		Preload("Comments.RefComment", "type=1").
+		Preload("Comments.RefComment.WeiChat").
+		Preload("WeiChat").Where(svalue)
+	db.Count(&count)
+	err := db.Limit(page_size).Offset((page_number - 1) * page_size).Order(order).Find(&model).Error
 	if err != nil {
 		Untils.ResponseBadState(c, err)
-	} else {
-		goto label
+		return
 	}
-label:
 	if len(model) < 10 && len(model) != 0 {
 		total = 1
 	} else {
@@ -193,9 +194,9 @@ label:
 
 func TalkListController(c *gin.Context) {
 	if c.Request.Method == "POST" {
-		AddTopicList(c)
+		AddList(c)
 	} else if c.Request.Method == "GET" {
-		GetTopicList(c)
+		GetList(c)
 	}
 }
 

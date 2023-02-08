@@ -42,7 +42,6 @@ type TopicDiscuss struct {
 	CanDelete     bool       `json:"can_delete"`
 	CanChat       bool       `json:"can_chat"`
 	Supertube     int        `json:"supertube"`
-	AppCode       string     `json:"app_code" binding:"required"`
 	WeiChatID     uint
 	WeiChat       WeiChat `binding:"-" json:"poster"`
 }
@@ -97,7 +96,6 @@ type SaleFriend struct {
 	CanChat       bool       `json:"can_chat"`
 	Comments      []Comment  `json:"comments"`
 	Follow        bool       `json:"follow"`
-	AppCode       string     `json:"app_code"`
 	FollowNumber  int        `json:"follow_number"`
 	WeiChatID     uint
 	WeiChat       WeiChat `binding:"-" json:"poster"`
@@ -122,14 +120,49 @@ type Comment struct {
 	Author         int        `json:"author"`
 	CanDelete      bool       `json:"can_delete"`
 	WeiChatID      uint
-	WeiChat        WeiChat      `json:"commenter" binding:"-"`
-	RefComment     []RefComment `json:"ref_comment"`
-	SubComments    []Comment    `json:"sub_comments"`
-	SaleFriendID   uint         `json:"-"`
-	TopicDiscussID uint         `json:"-"`
+	WeiChat        WeiChat       `json:"commenter" binding:"-"`
+	RefComment     []RefComment  `json:"ref_comment"`
+	SubComments    []SaleComment `json:"sub_comments"`
+	SaleFriendID   uint          `json:"-"`
+	TopicDiscussID uint          `json:"-"`
 }
 
 type RefComment struct {
+	gorm.Model
+	Attachments   arraySlice `json:"attachments" gorm:"type:text"`
+	CommenterId   uint       `json:"commenter_id"`
+	CollegeId     int        `json:"college_id"`
+	Content       string     `json:"content"`
+	ObjType       int        `json:"obj_type"`
+	ObjId         uint       `json:"obj_id"`
+	Type          string     `json:"type"`
+	Status        int        `json:"status"`
+	WeiChatID     uint
+	WeiChat       WeiChat `json:"refCommenter" binding:"-"`
+	SaleFriendID  uint
+	SaleCommentID uint
+	//ListCommentID uint
+	CommentID uint
+}
+
+type SaleComment struct {
+	gorm.Model
+	Attachments  arraySlice `json:"attachments" gorm:"type:text"`
+	CommenterId  uint       `json:"commenter_id"`
+	CollegeId    int        `json:"college_id"`
+	Content      string     `json:"content"`
+	ObjType      int        `json:"obj_type"`
+	ObjId        uint       `json:"obj_id"`
+	Type         string     `json:"type"`
+	Status       int        `json:"status"`
+	WeiChatID    uint
+	WeiChat      WeiChat `json:"refCommenter" binding:"-"`
+	CommentID    uint
+	RefComment   []RefComment `json:"ref_comment"`
+	SaleFriendID uint
+}
+
+type ListComment struct {
 	gorm.Model
 	Attachments arraySlice `json:"attachments" gorm:"type:text"`
 	CommenterId uint       `json:"commenter_id"`
@@ -142,6 +175,7 @@ type RefComment struct {
 	WeiChatID   uint
 	WeiChat     WeiChat `json:"refCommenter" binding:"-"`
 	CommentID   uint
+	RefComment  []RefComment `json:"ref_comment"`
 }
 
 func (Comment) TableName() string {
@@ -150,4 +184,12 @@ func (Comment) TableName() string {
 
 func (RefComment) TableName() string {
 	return "RefComment"
+}
+
+func (SaleComment) TableName() string {
+	return "SaleComment"
+}
+
+func (ListComment) TableName() string {
+	return "ListComment"
 }

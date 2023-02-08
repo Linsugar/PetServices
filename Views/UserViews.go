@@ -83,7 +83,7 @@ func Register(c *gin.Context) {
 	WeiUser.VisitIP = NowIp
 	Err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
-		er := tx.Model(&Models.WeiChat{}).Where("app_code=?", WeiUser.AppCode).Find(&Models.WeiChat{}).RowsAffected
+		er := tx.Model(&Models.WeiChat{}).Where("app_id=?", WeiUser.AppId).First(&Models.WeiChat{}).RowsAffected
 		if er == 0 {
 			if err3 := tx.Model(&Models.WeiChat{}).Create(&WeiUser).Error; err3 != nil {
 				// 返回任何错误都会回滚事务
@@ -95,7 +95,7 @@ func Register(c *gin.Context) {
 				return err3
 			}
 		}
-		token, toker := Middlewares.GenToken(WeiUser.AppId, WeiUser.AppCode)
+		token, toker := Middlewares.GenToken(WeiUser.AppId, WeiUser.NickName)
 		if toker != nil {
 			return toker
 		}
@@ -163,9 +163,9 @@ func Update_UserInfo(c *gin.Context) {
 	}
 	Err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
-		er := tx.Model(user).Where("app_code=?", value.AppCode).Find(&user).RowsAffected
+		er := tx.Model(user).Where("id=?", value.Uid).Find(&user).RowsAffected
 		if er != 0 {
-			v := tx.Model(user).Updates(map[string]interface{}{"avatar": value.Avator, "signature": value.Signature, "nick_name": value.Nickname}).Where("app_code=?", value.AppCode).Error
+			v := tx.Model(user).Updates(map[string]interface{}{"avatar": value.Avatar, "signature": value.Signature, "nick_name": value.Nickname}).Where("id=?", value.Uid).Error
 			if v != nil {
 				return v
 			}
@@ -184,24 +184,24 @@ func Update_UserInfo(c *gin.Context) {
 type UpdateInfo struct {
 	Signature string `json:"signature"`
 	Nickname  string `json:"nickname"`
-	AppCode   string `json:"app_code"`
-	Avator    string `json:"avator"`
+	Uid       int    `json:"id"`
+	Avatar    string `json:"avatar"`
 }
 
 // Get_Personal_Info 获取用户详情
 func Get_Personal_Info(c *gin.Context) {
 	var info Models.WeiChat
-	app_code := c.Query("app_code")
 	id := c.Query("user_id")
 	var err error
-	if id != "" {
+	if id == "" {
 		err = Untils.Db.Transaction(func(tx *gorm.DB) error {
-			tx.Model(Models.WeiChat{}).Where("app_code=? and id =?", app_code, id).First(&info)
+			userID, _ := c.Get("userID")
+			tx.Model(Models.WeiChat{}).Where("app_id=?", userID).First(&info)
 			return nil
 		})
 	} else {
 		err = Untils.Db.Transaction(func(tx *gorm.DB) error {
-			tx.Model(Models.WeiChat{}).Where("app_code=?", app_code).First(&info)
+			tx.Model(Models.WeiChat{}).Where("id=?", id).First(&info)
 			return nil
 		})
 	}

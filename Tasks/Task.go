@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-//添加定时任务
+// 添加定时任务
 var Cr *cron.Cron
 var JsonArticle = make(chan interface{}, 2)
 
@@ -27,6 +27,7 @@ func init() {
 func TaskInitAll() {
 	//全部定时任务
 	Cr.AddFunc("0 0 13 * * ?", GetArticle)
+	//Cr.AddFunc("0 3/3 * * * ?",UpdateListType)
 
 }
 
@@ -82,4 +83,14 @@ func GetArticle() {
 	StringArticle <- js
 	Untils.SetRedisValue("weixin", <-StringArticle, time.Second*1000)
 
+}
+
+func UpdateListType() {
+	list := Models.TopicDiscuss{}
+	sale := Models.SaleFriend{}
+	Untils.Info.Println("开始进行定时任务更新列表字段")
+	Untils.Db.Model(list).Updates(map[string]interface{}{"type": 4}).Where("praise_number>?", 3)
+	Untils.Db.Model(sale).Updates(map[string]interface{}{"type": 4}).Where("praise_number>?", 3)
+	Untils.Info.Println("更新任务列表完毕")
+	return
 }

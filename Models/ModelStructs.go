@@ -86,32 +86,31 @@ func (UserToPic) TableName() string {
 // WeiChat 微信用户信息
 type WeiChat struct {
 	gorm.Model
-	EncryptedData string `json:"encrypted_data" gorm:"type:varchar(655)"`
-	Code          string `json:"code"`
-	Iv            string `json:"iv"`
-	AppId         string `json:"app_id" binding:"required"`
-	AppCode       string `json:"app_code" binding:"required"`
-	Token         string `json:"token"`
-	Avatar        string `json:"avatar" gorm:"default:'http://cdn.tlapp.club/pet.png'"`
-	NickName      string `json:"nickName" gorm:"default:'访客'"`
-	VisitIP       string `json:"visitIP"`
-	Signature     string `json:"personal_signature"`
-	Gender        bool   `json:"gender"`
-	Type          string `json:"type" gorm:"default:'0'"`
-	UnionId       string `json:"Union_id"`
-	Status        string `json:"status"`
-	ActiveValue   int    `json:"active_value"`
-	City          string `json:"city"`
-	ClockNum      int    `json:"clock_num"`
-	Country       string `json:"country"`
-	FansNum       int    `json:"fans_num"`
-	FollowNum     int    `json:"follow_num"`
-	Language      string `json:"language"`
-	Mobile        string `json:"mobile"`
-	OpenId        string `json:"open_id"`
-	PostNum       int    `json:"post_num"`
-	Province      string `json:"province"`
-	Supertube     int    `json:"supertube"`
+	Code        string `json:"code"`
+	Iv          string `json:"iv"`
+	AppId       string `json:"app_id" binding:"required"`
+	AppCode     string `json:"app_code"`
+	Token       string `json:"token"`
+	Avatar      string `json:"avatar" gorm:"default:'http://cdn.tlapp.club/pet.png'"`
+	NickName    string `json:"nickName" gorm:"default:'访客'"`
+	VisitIP     string `json:"visitIP"`
+	Signature   string `json:"personal_signature"`
+	Gender      bool   `json:"gender"`
+	Type        string `json:"type" gorm:"default:'0'"`
+	UnionId     string `json:"Union_id"`
+	Status      string `json:"status"`
+	ActiveValue int    `json:"active_value"`
+	City        string `json:"city"`
+	ClockNum    int    `json:"clock_num"`
+	Country     string `json:"country"`
+	FansNum     int    `json:"fans_num"`
+	FollowNum   int    `json:"follow_num"`
+	Language    string `json:"language"`
+	Mobile      string `json:"mobile"`
+	OpenId      string `json:"open_id"`
+	PostNum     int    `json:"post_num"`
+	Province    string `json:"province"`
+	Supertube   int    `json:"supertube"`
 }
 
 func (WeiChat) TableName() string {

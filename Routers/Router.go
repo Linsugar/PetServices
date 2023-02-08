@@ -38,6 +38,12 @@ func Router() {
 		V1Route.Any("/comment", Views.CommentController)
 		V1Route.Any("/detail", Views.FriendDetail)
 		V1Route.GET("/most_new_sale_friend", Views.GetNewFriends)
+		V1Route.POST("/TencentFace", Views.Tencent)
+		V1Route.POST("/TencentAge", Views.TencentAge)
+		V1Route.POST("/run_data", Views.GetWeiXinRunData)
+		V1Route.GET("/run_steps", Views.GetListRunData)
+		V1Route.GET("/run_statistic", Views.GetUserRunData)
+		V1Route.GET("/session", Views.GetSession)
 	}
 	V2Route := R.Group("/UserConfig")
 	{

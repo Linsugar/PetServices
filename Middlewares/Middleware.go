@@ -38,6 +38,10 @@ func JWThMiddleware() func(c *gin.Context) {
 			c.Next()
 			return
 		}
+		if url.Path == "/UserCenter/session" && method == "GET" {
+			c.Next()
+			return
+		}
 		token := c.Request.Header.Get("token")
 		if token == "" {
 			// 处理 没有token的时候
