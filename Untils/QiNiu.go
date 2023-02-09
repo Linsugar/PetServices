@@ -2,13 +2,12 @@ package Untils
 
 import (
 	"PetService/Conf"
-	"fmt"
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/storage"
 )
 
 func QiNiuToken() string {
-	bucket := "tang-chat"
+	bucket := "chat-tang"
 	putPolicy := storage.PutPolicy{
 		Scope: bucket,
 		//CallbackBody: "key=$(key)&hash=$(etag)&width=$(imageInfo.width)&height=$(imageInfo.height)&imageURL=$(imageURL)&size=$(fsize)",
@@ -18,6 +17,5 @@ func QiNiuToken() string {
 	mac := auth.New(Conf.AccessKey, Conf.SecretKey)
 	upToken := putPolicy.UploadToken(mac)
 	//SetRedisValue("qiniu",upToken,3600);
-	fmt.Println("token:" + upToken)
 	return upToken
 }
