@@ -10,10 +10,10 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/qiniu/go-sdk/v7 v7.11.1
 	github.com/robfig/cron v1.2.0
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.586
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/facefusion v1.0.584
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ft v1.0.586
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/iai v1.0.584
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.591
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/facefusion v1.0.591
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ft v1.0.591
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/iai v1.0.591
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 

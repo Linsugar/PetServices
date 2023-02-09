@@ -2,7 +2,11 @@ package Untils
 
 import (
 	"PetService/Conf"
-	"PetService/Models"
+	"PetService/Models/Comment"
+	"PetService/Models/Home"
+	"PetService/Models/Mine"
+	"PetService/Models/Run"
+	"PetService/Models/Sale"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"time"
@@ -25,10 +29,9 @@ func init() {
 	// SetConnMaxLifetime 设置了连接可复用的最大时间。
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	Db = dataDase
-	var ModelsArrary = []interface{}{&Models.User{}, &Models.PetDetail{}, &Models.Dynamics{},
-		&Models.Article{}, &Models.RegisterCode{}, &Models.WeiChat{}, &Models.ReleaseTopic{},
-		&Models.TopicDiscuss{}, &Models.SaleFriend{}, &Models.Comment{}, &Models.RefComment{}, &Models.SaleComment{},
-		&Models.ListComment{}, &Models.WeiXinRunData{}}
+	var ModelsArrary = []interface{}{&Mine.WeiChat{}, &Mine.ReleaseTopic{},
+		&Home.TopicDiscuss{}, &Sale.SaleFriend{}, &Comment.Comment{}, &Comment.RefComment{}, &Comment.SaleComment{},
+		&Comment.ListComment{}, &Run.WeiXinRunData{}, &Comment.CollectHomeList{}, &Comment.CollectUserList{}, &Comment.CollectSaleList{}}
 
 	Db.AutoMigrate(ModelsArrary...)
 	fmt.Println("链接成功", err)

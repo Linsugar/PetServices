@@ -1,7 +1,9 @@
-package Views
+package HomeViews
 
 import (
-	"PetService/Models"
+	"PetService/Models/Comment"
+	"PetService/Models/Home"
+	"PetService/Models/Mine"
 	"PetService/Untils"
 	"errors"
 	"fmt"
@@ -10,54 +12,10 @@ import (
 	"strconv"
 )
 
-//文章控制器
-
-func ArticleController(c *gin.Context) {
-	if c.Request.Method == "POST" {
-		ArticlePost(c)
-	} else if c.Request.Method == "GET" {
-		ArticleAll(c)
-	}
-}
-
-func ArticleAll(c *gin.Context) {
-	fmt.Println("进入")
-	var Article []Models.Article
-	if err := Untils.Db.Model(&Models.Article{}).Find(&Article).Error; err != nil {
-		Untils.ResponseBadState(c, err)
-		return
-	}
-	Untils.ResponseOkState(c, Article)
-}
-
-func ArticlePost(c *gin.Context) {
-	FormData := Models.Article{}
-	errs := c.Bind(&FormData)
-	fmt.Println("绑定有误:", errs)
-	if errs != nil {
-		Untils.ResponseBadState(c, errs)
-	}
-	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		if e1 := tx.Where("user_id=?", FormData.ArticleAuthor).Find(&Models.User{}).Error; e1 != nil {
-			return e1
-		}
-		if e2 := Untils.Db.Model(&Models.Article{}).Create(&FormData).Error; e2 != nil {
-			return e2
-		}
-		return nil
-	})
-	if err != nil {
-		Untils.ResponseBadState(c, err)
-		return
-	}
-
-	Untils.ResponseOkState(c, FormData)
-}
-
 // SendReleaseTopic 添加话题
 func SendReleaseTopic(c *gin.Context) {
-	FormData := Models.ReleaseTopic{}
-	var user Models.WeiChat
+	FormData := Mine.ReleaseTopic{}
+	var user Mine.WeiChat
 	errs := c.Bind(&FormData)
 	if errs != nil {
 		Untils.ResponseBadState(c, errs)
@@ -69,7 +27,7 @@ func SendReleaseTopic(c *gin.Context) {
 		}
 		FormData.WeiChatID = user.ID
 		FormData.UserType = user.Type
-		e2 := Untils.Db.Model(&Models.ReleaseTopic{}).Create(&FormData).Error
+		e2 := Untils.Db.Model(&Mine.ReleaseTopic{}).Create(&FormData).Error
 		if e2 != nil {
 			return errors.New("写入失败")
 		}
@@ -87,9 +45,9 @@ func GetReleaseTopic(c *gin.Context) {
 	sort_by := c.DefaultQuery("sort_by", "desc")
 
 	oreder := fmt.Sprintf("%s %s", order_by, sort_by)
-	FormData := Models.ReleaseTopic{}
+	FormData := Mine.ReleaseTopic{}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
-		e1 := tx.Model(&Models.ReleaseTopic{}).Order(oreder).Find(&FormData).Error
+		e1 := tx.Model(&Mine.ReleaseTopic{}).Order(oreder).Find(&FormData).Error
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}
@@ -104,8 +62,8 @@ func GetReleaseTopic(c *gin.Context) {
 
 // AddList 添加当前发布信息
 func AddList(c *gin.Context) {
-	model := Models.TopicDiscuss{}
-	info := Models.WeiChat{}
+	model := Home.TopicDiscuss{}
+	info := Mine.WeiChat{}
 	errs := c.Bind(&model)
 	if errs != nil {
 		fmt.Println("绑定失败")
@@ -114,14 +72,14 @@ func AddList(c *gin.Context) {
 	}
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		uid, _ := c.Get("userID")
-		e1 := tx.Debug().Model(&Models.WeiChat{}).Where("open_id=?", uid).First(&info).Error
+		e1 := tx.Debug().Model(&Mine.WeiChat{}).Where("open_id=?", uid).First(&info).Error
 		if e1 != nil {
 			return errors.New("非法闯入-当前账号不存在")
 		}
 		model.WeiChat = info
 		model.PosterId = info.ID
 		model.Type = 1
-		e2 := tx.Model(&Models.TopicDiscuss{}).Debug().Create(&model).Error
+		e2 := tx.Model(&Home.TopicDiscuss{}).Debug().Create(&model).Error
 		if e2 != nil {
 			return errors.New("写入失败")
 		}
@@ -136,7 +94,7 @@ func AddList(c *gin.Context) {
 
 // GetList 获取当前所有发布信息
 func GetList(c *gin.Context) {
-	var model []Models.TopicDiscuss
+	var model []Home.TopicDiscuss
 	page_size, _ := strconv.Atoi(c.Query("page_size"))
 	page_number, _ := strconv.Atoi(c.Query("page_number"))
 	getType := c.DefaultQuery("type", "1")
@@ -166,7 +124,7 @@ func GetList(c *gin.Context) {
 	if filter != "" {
 		svalue = fmt.Sprintf("type=%s AND AND content LIKE %s", getType, filter+"%")
 	}
-	db := Untils.Db.Debug().Model(&Models.TopicDiscuss{}).Preload("Comments").
+	db := Untils.Db.Debug().Model(&Home.TopicDiscuss{}).Preload("Comments").
 		Preload("Comments.WeiChat").
 		Preload("Comments.RefComment", "type=1").
 		Preload("Comments.RefComment.WeiChat").
@@ -216,4 +174,27 @@ func GetNewTopic(c *gin.Context) {
 	value["error_code"] = 0
 	value["error_message"] = "success"
 	Untils.ResponseOkState(c, value)
+}
+
+func CollectPostList(c *gin.Context) {
+	var collectData Home.FollowBind
+	var userInfo Mine.WeiChat
+	var homeList Comment.CollectHomeList
+	err := c.Bind(&collectData)
+	if err != nil {
+		Untils.Error.Println(err.Error())
+		return
+	}
+	Untils.Db.Model(userInfo).Where("id=?", collectData.UserId).First(&userInfo)
+	homeList.WeiChat = userInfo
+	rowsAffected := Untils.Db.Model(homeList).Where("wei_chat_id=?", userInfo.ID).Find(&homeList).RowsAffected
+	var us []int
+	if rowsAffected == 0 {
+		us = append(us, collectData.ObjId)
+		homeList.List = us
+		homeList.Type = collectData.ObjType
+		Untils.Db.Create(&homeList)
+	} else {
+		Untils.Db.Model(homeList).Update(map[string]any{"list": us}).Where("wei_chat_id=?", userInfo.ID)
+	}
 }

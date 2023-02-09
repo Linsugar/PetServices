@@ -2,15 +2,11 @@ package Tasks
 
 import (
 	"PetService/Conf"
-	"PetService/Models"
-	"PetService/Untils"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/robfig/cron"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 // 添加定时任务
@@ -26,7 +22,7 @@ func init() {
 
 func TaskInitAll() {
 	//全部定时任务
-	Cr.AddFunc("0 0 13 * * ?", GetArticle)
+	//Cr.AddFunc("0 0 13 * * ?", GetArticle)
 	//Cr.AddFunc("0 3/3 * * * ?",UpdateListType)
 
 }
@@ -54,43 +50,43 @@ func getToken() chan string {
 	return ChanToken
 }
 
-func GetArticle() {
-	StringArticle := make(chan string, 2)
-	var wc Models.T2
-	token := getToken()
-	arr := map[string]interface{}{
-		"type": "news", "offset": 0, "count": 10,
-	}
-	url2 := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%v", <-token)
-	jsonStr, _ := json.Marshal(arr)
-	post, err2 := http.Post(url2, "application/json", bytes.NewBuffer(jsonStr))
-	if err2 != nil {
-		fmt.Printf("当前错误：%v\n", err2)
-		return
-	}
-	body2, _ := ioutil.ReadAll(post.Body)
-	err4 := json.Unmarshal(body2, &wc)
-	marshal, err := json.Marshal(&wc)
-	if err4 != nil {
-		fmt.Printf("进入了这里5：%v\n", err4)
-		return
-	}
-	if err != nil {
-		return
-	}
-	JsonArticle <- wc
-	js := string(marshal)
-	StringArticle <- js
-	Untils.SetRedisValue("weixin", <-StringArticle, time.Second*1000)
-
-}
-
-func UpdateListType() {
-	list := Models.TopicDiscuss{}
-	sale := Models.SaleFriend{}
-	Untils.Info.Println("开始进行定时任务更新列表字段")
-	Untils.Db.Model(list).Updates(map[string]interface{}{"type": 4}).Where("praise_number>?", 3)
-	Untils.Db.Model(sale).Updates(map[string]interface{}{"type": 4}).Where("praise_number>?", 3)
-	Untils.Info.Println("更新任务列表完毕")
-	return
-}
+//func GetArticle() {
+//	StringArticle := make(chan string, 2)
+//	var wc Models.T2
+//	token := getToken()
+//	arr := map[string]interface{}{
+//		"type": "news", "offset": 0, "count": 10,
+//	}
+//	url2 := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%v", <-token)
+//	jsonStr, _ := json.Marshal(arr)
+//	post, err2 := http.Post(url2, "application/json", bytes.NewBuffer(jsonStr))
+//	if err2 != nil {
+//		fmt.Printf("当前错误：%v\n", err2)
+//		return
+//	}
+//	body2, _ := ioutil.ReadAll(post.Body)
+//	err4 := json.Unmarshal(body2, &wc)
+//	marshal, err := json.Marshal(&wc)
+//	if err4 != nil {
+//		fmt.Printf("进入了这里5：%v\n", err4)
+//		return
+//	}
+//	if err != nil {
+//		return
+//	}
+//	JsonArticle <- wc
+//	js := string(marshal)
+//	StringArticle <- js
+//	Untils.SetRedisValue("weixin", <-StringArticle, time.Second*1000)
+//
+//}
+//
+//func UpdateListType() {
+//	list := Models.TopicDiscuss{}
+//	sale := Models.SaleFriend{}
+//	Untils.Info.Println("开始进行定时任务更新列表字段")
+//	Untils.Db.Model(list).Updates(map[string]interface{}{"type": 4}).Where("praise_number>?", 3)
+//	Untils.Db.Model(sale).Updates(map[string]interface{}{"type": 4}).Where("praise_number>?", 3)
+//	Untils.Info.Println("更新任务列表完毕")
+//	return
+//}

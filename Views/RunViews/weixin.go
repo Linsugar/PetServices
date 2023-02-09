@@ -1,7 +1,9 @@
-package Views
+package RunViews
 
 import (
-	"PetService/Models"
+	"PetService/Models/Face"
+	"PetService/Models/Mine"
+	"PetService/Models/Run"
 	"PetService/Untils"
 	"crypto/aes"
 	"crypto/cipher"
@@ -20,7 +22,7 @@ var (
 	secret string
 )
 
-func GetWeiXinSession(code string) Models.SessionData {
+func GetWeiXinSession(code string) Face.SessionData {
 	url := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code", appid, secret, code)
 	get, err := http.Get(url)
 	if err != nil {
@@ -30,7 +32,7 @@ func GetWeiXinSession(code string) Models.SessionData {
 	if err != nil {
 		Untils.Error.Println(err.Error())
 	}
-	var getSession Models.SessionData
+	var getSession Face.SessionData
 	err = json.Unmarshal(all, &getSession)
 	if err != nil {
 		Untils.Error.Println(err.Error())
@@ -56,10 +58,10 @@ func WeiXinDecode(encryptedData, sessionKey, iv string) any {
 }
 
 func GetWeiXinRunData(c *gin.Context) {
-	run := Models.RunData{}
+	run := Run.RunData{}
 	err := c.Bind(&run)
-	var runData Models.WeiXinRunData
-	var userInfo Models.WeiChat
+	var runData Run.WeiXinRunData
+	var userInfo Mine.WeiChat
 	if err != nil {
 		Untils.Error.Println(err.Error())
 		return
@@ -69,7 +71,7 @@ func GetWeiXinRunData(c *gin.Context) {
 	runData.AppId = valueSession.Openid
 	runData.WeiChat = userInfo
 	Result := WeiXinDecode(run.EncryptedData, valueSession.SessionKey, run.Iv)
-	returnMap := Models.RunResultData{}
+	returnMap := Run.RunResultData{}
 	json.Unmarshal([]byte(Result.(string)), &returnMap)
 	Untils.Info.Println("进入这里2：", valueSession.Openid)
 	affected := Untils.Db.Model(&runData).Where("app_id=?", valueSession.Openid).Find(&runData).RowsAffected
@@ -97,7 +99,7 @@ func GetWeiXinRunData(c *gin.Context) {
 
 // GetUserRunData 独立获取专属用户的累计数据
 func GetUserRunData(c *gin.Context) {
-	var weiRunData Models.WeiXinRunData
+	var weiRunData Run.WeiXinRunData
 	user_id, _ := c.GetQuery("user_id")
 	Untils.Db.Model(&weiRunData).Where("wei_chat_id=?", user_id).First(&weiRunData)
 	Untils.ResponseOkState(c, weiRunData)
@@ -111,8 +113,9 @@ func GetListRunData(c *gin.Context) {
 	order_by := c.DefaultQuery("order_by", "today")
 	sort_by := c.DefaultQuery("sort_by", "desc")
 	oreder := fmt.Sprintf("%s %s", order_by, sort_by)
-	var weiRunData []Models.WeiXinRunData
-	Untils.Db.Model(&weiRunData).Preload("WeiChat").Find(&weiRunData).Limit(page_size).Offset(page_number).Order(oreder).Find(&weiRunData)
+	var weiRunData []Run.WeiXinRunData
+
+	db := Untils.Db.Model(&weiRunData).Preload("WeiChat")
 	var page = make(map[string]any)
 	var data = make(map[string]any)
 	total := 0
@@ -120,6 +123,11 @@ func GetListRunData(c *gin.Context) {
 		total = 1
 	} else {
 		total = len(weiRunData) / 10
+	}
+	err := db.Limit(page_size).Offset((page_number - 1) * page_size).Order(oreder).Find(&weiRunData).Error
+	if err != nil {
+		Untils.ResponseBadState(c, err)
+		return
 	}
 	page["number"] = "1"
 	page["size"] = "10"
@@ -133,7 +141,7 @@ func GetListRunData(c *gin.Context) {
 func GetSession(c *gin.Context) {
 	code := c.Query("code")
 	Untils.Info.Println("得到的code:=", code)
-	var getSession Models.SessionData
+	var getSession Face.SessionData
 	getSession = GetWeiXinSession(code)
 	Untils.ResponseOkState(c, getSession)
 }

@@ -1,7 +1,9 @@
-package Views
+package SaleViews
 
 import (
-	"PetService/Models"
+	"PetService/Models/Comment"
+	"PetService/Models/Mine"
+	"PetService/Models/Sale"
 	"PetService/Untils"
 	"errors"
 	"fmt"
@@ -14,8 +16,8 @@ import (
 
 // 发布朋友信息
 func SaleFriend(c *gin.Context) {
-	var sale Models.SaleFriend
-	var info Models.WeiChat
+	var sale Sale.SaleFriend
+	var info Mine.WeiChat
 	err := c.Bind(&sale)
 	if err != nil {
 		Untils.ResponseBadState(c, err)
@@ -23,7 +25,7 @@ func SaleFriend(c *gin.Context) {
 	}
 	err = Untils.Db.Transaction(func(tx *gorm.DB) error {
 		uid, _ := c.Get("userID")
-		res := tx.Debug().Model(&Models.WeiChat{}).Where("open_id = ?", uid).First(&info).RowsAffected
+		res := tx.Debug().Model(&Mine.WeiChat{}).Where("open_id = ?", uid).First(&info).RowsAffected
 		if res > 0 {
 			sale.WeiChat = info
 			sale.OwnerId = info.ID
@@ -31,7 +33,7 @@ func SaleFriend(c *gin.Context) {
 			//毫秒
 			sale.CreatedAt = time.Now().UnixMilli()
 			sale.UpdatedAt = time.Now().UnixMilli()
-			e1 := tx.Debug().Model(&Models.SaleFriend{}).Create(&sale).Error
+			e1 := tx.Debug().Model(&Sale.SaleFriend{}).Create(&sale).Error
 			if e1 != nil {
 				return errors.New(e1.Error())
 			}
@@ -49,7 +51,7 @@ func SaleFriend(c *gin.Context) {
 
 // 获取朋友信息
 func GetSaleFriend(c *gin.Context) {
-	var model []Models.SaleFriend
+	var model []Sale.SaleFriend
 	page_size, _ := strconv.Atoi(c.Query("page_size"))
 	page_number, _ := strconv.Atoi(c.Query("page_number"))
 	Untils.Info.Println(page_number)
@@ -74,15 +76,15 @@ func GetSaleFriend(c *gin.Context) {
 	var svalue string
 	if user_id != "" {
 		svalue = fmt.Sprintf("type=%s AND owner_id=%s", getType, user_id)
-		db = Untils.Db.Debug().Model(&Models.SaleFriend{}).Preload("Comments").
+		db = Untils.Db.Debug().Model(&Sale.SaleFriend{}).Preload("Comments").
 			Preload("WeiChat", func(tx *gorm.DB) *gorm.DB {
-				return tx.Model(Models.WeiChat{})
+				return tx.Model(Mine.WeiChat{})
 			}).Where(svalue)
 		db.Count(&count)
 	} else {
 		svalue = fmt.Sprintf("type=%s", getType)
 		Untils.Info.Println(page_number)
-		db = Untils.Db.Debug().Model(&Models.SaleFriend{}).Preload("Comments").Preload("Comments.SubComments").
+		db = Untils.Db.Debug().Model(&Sale.SaleFriend{}).Preload("Comments").Preload("Comments.SubComments").
 			Preload("Comments.SubComments.WeiChat").Preload("WeiChat").Where(svalue)
 	}
 	err = db.Limit(page_size).Offset((page_number - 1) * page_size).Order(order).Find(&model).Error
@@ -106,9 +108,9 @@ func GetSaleFriend(c *gin.Context) {
 }
 
 func FriendDetail(c *gin.Context) {
-	detail := Models.SaleFriend{}
+	detail := Sale.SaleFriend{}
 	id := c.Query("id")
-	Untils.Db.Debug().Model(&Models.SaleFriend{}).Where("id=?", id).
+	Untils.Db.Debug().Model(&detail).Where("id=?", id).
 		Preload("Comments").Preload("Comments.WeiChat").
 		Preload("Comments.SubComments").Preload("Comments.SubComments.WeiChat").
 		Preload("Comments.SubComments.RefComment").Preload("Comments.SubComments.RefComment.WeiChat").First(&detail)
@@ -117,26 +119,22 @@ func FriendDetail(c *gin.Context) {
 
 // AddComment 添加评论
 func AddComment(c *gin.Context) {
-	comment := Models.Comment{}
+	comment := Comment.Comment{}
 	appCode := "04rNbDIGuBoYcsQn"
-	info := Models.WeiChat{}
+	info := Mine.WeiChat{}
 	err := c.ShouldBindBodyWith(&comment, binding.JSON)
 	if err != nil {
 		Untils.Error.Println(err.Error())
 		return
 	}
-	Untils.Db.Debug().Model(&Models.WeiChat{}).Where("app_code=?", appCode).First(&info)
+	Untils.Db.Debug().Model(&info).Where("app_code=?", appCode).First(&info)
 	comment.WeiChat = info
 	comment.CommenterId = info.ID
 	Untils.Info.Println("id:===> ", comment.Type)
 	if comment.Type == "1" {
 		comment.TopicDiscussID = comment.ObjId
 		if comment.RefCommentId > 0 {
-			fmt.Println("进入到这里了")
-			//saleInfo:=Models.ListComment{}
-			//affected := Untils.Db.Debug().Model(saleInfo).Where("comment_id =?", comment.RefCommentId).Find(&saleInfo).RowsAffected
-			//Untils.Info.Println("找到了数据：",affected)
-			ref := &Models.RefComment{}
+			ref := &Comment.RefComment{}
 			er1 := c.ShouldBindBodyWith(&ref, binding.JSON)
 			if er1 != nil {
 				fmt.Println(er1.Error())
@@ -150,45 +148,15 @@ func AddComment(c *gin.Context) {
 			Untils.Db.Debug().Create(&ref)
 			Untils.ResponseOkState(c, ref)
 			return
-			//if affected == 0{
-			//	er1 := c.ShouldBindBodyWith(&saleInfo, binding.JSON)
-			//	saleInfo.WeiChat = info
-			//	saleInfo.CommenterId = info.ID
-			//	saleInfo.CommentID = comment.RefCommentId
-			//	if er1 != nil {
-			//		fmt.Println(er1.Error())
-			//		return
-			//	}
-			//	Untils.Db.Debug().Model(Models.ListComment{}).Create(&saleInfo)
-			//	Untils.ResponseOkState(c,saleInfo)
-			//	return
-			//}else {
-			//
-			//}
 		}
-		//if comment.RefCommentId > 0 {
-		//	ref := &Models.RefComment{}
-		//	er1 := c.ShouldBindBodyWith(&ref, binding.JSON)
-		//	ref.WeiChat = info
-		//	ref.CommenterId = info.ID
-		//	//ref.CommentID = comment.RefCommentId
-		//	if er1 != nil {
-		//		Untils.Error.Println(er1.Error())
-		//		return
-		//	}
-		//	Untils.Db.Debug().Model(Models.Comment{}).Update(map[string]any{"ref_comment_id": &comment.RefCommentId}).Where("app_code=?", appCode)
-		//	Untils.Db.Debug().Model(Models.RefComment{}).Create(&ref)
-		//	Untils.ResponseOkState(c,ref)
-		//	return
-		//}
 	}
 	if comment.Type == "2" || comment.Type == "4" {
 		comment.SaleFriendID = comment.ObjId
 		if comment.RefCommentId > 0 {
-			saleInfo := Models.SaleComment{}
-			affected := Untils.Db.Debug().Model(Models.SaleComment{}).Where("id =?", comment.RefCommentId).Find(&saleInfo).RowsAffected
+			saleInfo := Comment.SaleComment{}
+			affected := Untils.Db.Debug().Model(&saleInfo).Where("id =?", comment.RefCommentId).Find(&saleInfo).RowsAffected
 			if comment.RefCommentId == comment.ObjId && affected == 0 {
-				sale := &Models.SaleComment{}
+				sale := &saleInfo
 				er1 := c.ShouldBindBodyWith(&sale, binding.JSON)
 				sale.WeiChat = info
 				sale.CommenterId = info.ID
@@ -198,54 +166,36 @@ func AddComment(c *gin.Context) {
 					fmt.Println(er1.Error())
 					return
 				}
-				Untils.Db.Debug().Model(Models.SaleComment{}).Create(&sale)
+				Untils.Db.Debug().Model(&saleInfo).Create(&sale)
 				Untils.ResponseOkState(c, sale)
 				return
 			} else {
-				ref := &Models.RefComment{}
+				ref := &Comment.RefComment{}
 				er1 := c.ShouldBindBodyWith(&ref, binding.JSON)
 				ref.WeiChat = info
 				ref.CommenterId = info.ID
 				ref.SaleFriendID = comment.RefCommentId
-				//ref.CommentID = comment.RefCommentId
 				ref.SaleCommentID = comment.RefCommentId
 				if er1 != nil {
 					fmt.Println(er1.Error())
 					return
 				}
 				Untils.Info.Println("找到多少条数据之前：", comment.RefCommentId)
-				Untils.Db.Debug().Model(Models.RefComment{}).Create(&ref)
+				Untils.Db.Debug().Model(ref).Create(&ref)
 				Untils.ResponseOkState(c, ref)
 				return
 			}
 		}
 	}
-	Untils.Db.Debug().Model(&Models.Comment{}).Create(&comment)
+	Untils.Db.Debug().Model(&Comment.Comment{}).Create(&comment)
 	Untils.ResponseOkState(c, comment)
 
 }
 
 // GetComment 获取评论
 func GetComment(c *gin.Context) {
-	comment := Models.Comment{}
-	Untils.Db.Model(&Models.Comment{}).Preload("WeiChat").First(&comment)
-	//Untils.Db.Transaction(func(tx *gorm.DB) error {
-	//	err := tx.Model(&Models.Comment{}).Preload("WeiChat").First(&comment).Error
-	//	Untils.Info.Println("进入")
-	//	if err != nil {
-	//		Untils.Error.Println(err.Error())
-	//		return err
-	//	}
-	//	err2 := tx.Model(&Models.Comment{}).Where("obj_id=?", comment.ID).Find(&comments).Error
-	//	Untils.Info.Println("进入2")
-	//	if err2 != nil {
-	//		Untils.Error.Println(err2.Error())
-	//		return err2
-	//	}
-	//	comment.SubComments = comments
-	//	Untils.Info.Println(comment)
-	//	return nil
-	//})
+	comment := Comment.Comment{}
+	Untils.Db.Model(comment).Preload("WeiChat").First(&comment)
 	Untils.ResponseOkState(c, comment)
 }
 
@@ -271,11 +221,11 @@ func GetNewFriends(c *gin.Context) {
 	newTime := c.Query("time")
 	app_code := c.Query("app_code")
 	fmt.Println("当前时间：", newTime)
-	var value []Models.SaleFriend
-	var info Models.WeiChat
+	var value []Sale.SaleFriend
+	var info Mine.WeiChat
 	err := Untils.Db.Transaction(func(tx *gorm.DB) error {
 		fmt.Println(1)
-		affected := tx.Debug().Model(&Models.WeiChat{}).Where("app_code=?", app_code).First(&info).RowsAffected
+		affected := tx.Debug().Model(info).Where("app_code=?", app_code).First(&info).RowsAffected
 		fmt.Println(affected)
 		if affected >= 1 {
 			var LOC, _ = time.LoadLocation("Asia/Shanghai")
@@ -284,7 +234,7 @@ func GetNewFriends(c *gin.Context) {
 				return err
 			}
 			fmt.Println("x:", location.UnixMilli())
-			Untils.Db.Debug().Model(&Models.SaleFriend{}).Where("created_at >= ?", location.UnixMilli()).Find(&value)
+			Untils.Db.Debug().Model(value).Where("created_at >= ?", location.UnixMilli()).Find(&value)
 			return nil
 		} else {
 			return errors.New("时间不对")

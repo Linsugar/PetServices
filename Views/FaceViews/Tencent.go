@@ -1,9 +1,6 @@
-package Untils
+package FaceViews
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/base64"
 	"fmt"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
@@ -130,38 +127,6 @@ func FaceAge(url string, age int) *ft.ChangeAgePicResponseParams {
 		panic(err)
 	}
 	return response.Response
-}
-
-func AesDecrypt(crypted, key, iv string) ([]byte, error) {
-	decodeBytes, err := base64.StdEncoding.DecodeString(crypted)
-	if err != nil {
-		return nil, err
-	}
-	sessionKeyBytes, err := base64.StdEncoding.DecodeString(key)
-	if err != nil {
-		return nil, err
-	}
-	ivBytes, err := base64.StdEncoding.DecodeString(iv)
-	if err != nil {
-		return nil, err
-	}
-	block, err := aes.NewCipher(sessionKeyBytes)
-	if err != nil {
-		return nil, err
-	}
-	//blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, ivBytes)
-	origData := make([]byte, len(decodeBytes))
-	blockMode.CryptBlocks(origData, decodeBytes)
-	//获取的数据尾端有'/x0e'占位符,去除它
-	for i, ch := range origData {
-		if ch == '\x0e' {
-			origData[i] = ' '
-		}
-	}
-	Error.Println("结果数据：", string(origData))
-	//{"phoneNumber":"15082726017","purePhoneNumber":"15082726017","countryCode":"86","watermark":{"timestamp":1539657521,"appid":"wx4c6c3ed14736228c"}}//<nil>
-	return origData, nil
 }
 
 func init() {
