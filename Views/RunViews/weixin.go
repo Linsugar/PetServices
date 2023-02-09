@@ -147,6 +147,6 @@ func GetSession(c *gin.Context) {
 }
 
 func init() {
-	appid = "wx1c5dc5540564df37"
-	secret = "90462a31842d82938161d2c3676c8cc3"
+	appid = "xxx"
+	secret = "xxxx"
 }
